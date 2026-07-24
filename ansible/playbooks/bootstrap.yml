@@ -1,0 +1,34 @@
+---
+# One-time cluster bootstrap: installs ArgoCD via Helm, then hands control
+# of the cluster over to ArgoCD by applying the root app-of-apps.
+# Safe to re-run — everything here is idempotent.
+- name: Bootstrap ArgoCD
+  hosts: localhost
+  gather_facts: false
+  vars:
+    argocd_namespace: argocd
+    argocd_chart_version: "7.7.11"  # chart version, not app version — https://artifacthub.io/packages/helm/argo/argo-cd
+    repo_root: "{{ playbook_dir }}/../.."
+
+  tasks:
+    - name: Add Argo Helm repository
+      kubernetes.core.helm_repository:
+        name: argo
+        repo_url: https://argoproj.github.io/argo-helm
+
+    - name: Install ArgoCD
+      kubernetes.core.helm:
+        name: argocd
+        chart_ref: argo/argo-cd
+        chart_version: "{{ argocd_chart_version }}"
+        release_namespace: "{{ argocd_namespace }}"
+        create_namespace: true
+        values_files:
+          - "{{ repo_root }}/bootstrap/argocd-values.yaml"
+        wait: true
+        wait_timeout: 10m
+
+    - name: Apply root app-of-apps
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ repo_root }}/bootstrap/root-app.yaml"

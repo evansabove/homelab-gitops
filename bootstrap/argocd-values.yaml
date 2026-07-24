@@ -1,0 +1,22 @@
+# Helm values for the argo-cd chart.
+# To upgrade or reconfigure ArgoCD itself, edit this file (or bump
+# argocd_chart_version) and re-run the bootstrap playbook.
+configs:
+  params:
+    # Homelab-friendly: serve the UI/API over plain HTTP behind your
+    # ingress or port-forward. Remove if you terminate TLS at argocd-server.
+    server.insecure: true
+
+# Trim resource usage for a homelab — drop this block if you have headroom.
+controller:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+dex:
+  # SSO connector — not needed for local admin login.
+  enabled: false
+
+notifications:
+  enabled: false

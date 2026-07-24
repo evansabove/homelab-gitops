@@ -1,0 +1,10 @@
+# Never commit kubeconfigs or secrets
+*.kubeconfig
+kubeconfig*
+*.key
+*.pem
+secrets.yaml
+
+# Ansible
+*.retry
+ansible/collections/
