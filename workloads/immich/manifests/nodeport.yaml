@@ -1,0 +1,15 @@
+# Stopgap direct access on http://192.168.1.10:30283 while LAN DNS is
+# being sorted out. Remove once immich.andyevans.dev resolves everywhere.
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-server-nodeport
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: server
+    app.kubernetes.io/instance: immich
+  ports:
+    - port: 2283
+      targetPort: 2283
+      nodePort: 30283
