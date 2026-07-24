@@ -2,19 +2,6 @@
 # Server/ML image tags follow the chart's default appVersion; upgrade Immich
 # by bumping the chart version in apps/immich.yaml.
 
-env:
-  DB_HOSTNAME: immich-postgres
-  DB_USERNAME: immich
-  DB_DATABASE_NAME: immich
-  DB_PASSWORD:
-    valueFrom:
-      secretKeyRef:
-        # Created manually, not in git:
-        #   kubectl -n immich create secret generic immich-postgres \
-        #     --from-literal=password=<password>
-        name: immich-postgres
-        key: password
-
 # In-cluster Valkey (Redis-compatible), bundled by the chart
 valkey:
   enabled: true
@@ -26,6 +13,20 @@ immich:
       existingClaim: immich-library
 
 server:
+  controllers:
+    main:
+      containers:
+        main:
+          env:
+            DB_HOSTNAME: immich-postgres
+            DB_USERNAME: immich
+            DB_DATABASE_NAME: immich
+            DB_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  # SealedSecret in manifests/postgres-secret.yaml
+                  name: immich-postgres
+                  key: password
   ingress:
     main:
       enabled: true
