@@ -22,6 +22,14 @@ ansible-galaxy collection install -r requirements.yml
 ansible-playbook playbooks/bootstrap.yml
 ```
 
+> **Windows note:** Ansible can't run as a control node on native Windows —
+> run the above from WSL with `helm` and the `kubernetes` pip package
+> installed there, e.g.:
+>
+> ```bash
+> wsl -e bash -c 'export PATH=$HOME/.local/bin:$PATH KUBECONFIG=/mnt/c/Users/AndyEvans/.kube/config; cd /mnt/c/Projects/homelab-gitops/ansible; ansible-playbook playbooks/bootstrap.yml'
+> ```
+
 This installs ArgoCD into the `argocd` namespace and applies
 [bootstrap/root-app.yaml](bootstrap/root-app.yaml). From then on, ArgoCD
 continuously syncs everything under `apps/` — day-to-day changes are made
