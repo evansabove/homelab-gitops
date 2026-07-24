@@ -8,10 +8,11 @@ metadata:
 spec:
   project: default
   sources:
-    # The Immich Helm chart, configured from values in this repo
-    - repoURL: https://immich-app.github.io/immich-charts
+    # The Immich Helm chart (OCI registry, registered via infrastructure/argocd-repos),
+    # configured from values in this repo
+    - repoURL: ghcr.io/immich-app/immich-charts
       chart: immich
-      targetRevision: 0.12.0
+      targetRevision: 0.13.1
       helm:
         valueFiles:
           - $values/workloads/immich/values.yaml

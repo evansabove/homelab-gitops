@@ -1,0 +1,16 @@
+# Registers the Immich OCI helm registry with ArgoCD. The old HTTP repo at
+# immich-app.github.io/immich-charts stopped receiving updates after chart
+# 0.12.0; newer charts are only published to ghcr.io. No credentials needed
+# (public registry), but OCI repos must be declared explicitly.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: immich-charts-oci
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: immich-charts
+  url: ghcr.io/immich-app/immich-charts
+  type: helm
+  enableOCI: "true"

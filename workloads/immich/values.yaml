@@ -1,6 +1,13 @@
 # Values for the immich Helm chart (chart pinned in apps/immich.yaml).
-# Server/ML image tags follow the chart's default appVersion; upgrade Immich
-# by bumping the chart version in apps/immich.yaml.
+
+# Server + ML image tag. The chart's default follows its appVersion, which can
+# lag behind Immich releases — pin the exact version here instead.
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          tag: v3.0.3
 
 # In-cluster Valkey (Redis-compatible), bundled by the chart
 valkey:
