@@ -1,0 +1,21 @@
+# Let's Encrypt via DNS-01 against Cloudflare (public DNS host of andyevans.dev).
+# DNS-01 means certs get issued even though nothing is reachable from the
+# internet. Requires a secret (NOT in git):
+#   kubectl -n cert-manager create secret generic cloudflare-api-token \
+#     --from-literal=api-token=<token with Zone:DNS:Edit for andyevans.dev>
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: andrewjamesevans@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-account-key
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token

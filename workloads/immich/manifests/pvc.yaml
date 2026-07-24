@@ -1,0 +1,12 @@
+# Photo/video library — lives on benson's local disk. Back this up!
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-library
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 250Gi

@@ -1,0 +1,51 @@
+# Values for the immich Helm chart (chart pinned in apps/immich.yaml).
+# Server/ML image tags follow the chart's default appVersion; upgrade Immich
+# by bumping the chart version in apps/immich.yaml.
+
+env:
+  DB_HOSTNAME: immich-postgres
+  DB_USERNAME: immich
+  DB_DATABASE_NAME: immich
+  DB_PASSWORD:
+    valueFrom:
+      secretKeyRef:
+        # Created manually, not in git:
+        #   kubectl -n immich create secret generic immich-postgres \
+        #     --from-literal=password=<password>
+        name: immich-postgres
+        key: password
+
+# In-cluster Valkey (Redis-compatible), bundled by the chart
+valkey:
+  enabled: true
+
+immich:
+  persistence:
+    library:
+      # PVC defined in workloads/immich/manifests/pvc.yaml
+      existingClaim: immich-library
+
+server:
+  ingress:
+    main:
+      enabled: true
+      className: traefik
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+      hosts:
+        - host: immich.andyevans.dev
+          paths:
+            - path: /
+      tls:
+        - secretName: immich-tls
+          hosts:
+            - immich.andyevans.dev
+
+machine-learning:
+  persistence:
+    cache:
+      # Persist the ML model cache so models aren't re-downloaded on restart
+      enabled: true
+      type: persistentVolumeClaim
+      size: 10Gi
+      accessMode: ReadWriteOnce
