@@ -1,0 +1,24 @@
+# Values for the ollama Helm chart (chart pinned in apps/ollama.yaml).
+# CPU-only inference on benson (i5-8500T, 6 cores, no GPU).
+
+ollama:
+  models:
+    # Pulled at container startup if not already on the PVC
+    pull:
+      - qwen2.5:3b
+
+# Model storage (local-path). qwen2.5:3b Q4 is ~2Gi; room to try 7b models.
+persistentVolume:
+  enabled: true
+  size: 50Gi
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    # Leave one core free so Jellyfin/Immich stay responsive during generation
+    cpu: "5"
+    memory: 6Gi
+
+# API stays cluster-internal (no ingress); Open WebUI is the exposed frontend.
