@@ -6,6 +6,7 @@ ollama:
     # Pulled at container startup if not already on the PVC
     pull:
       - qwen2.5:3b
+      - qwen2.5:7b
 
 # Model storage (local-path). qwen2.5:3b Q4 is ~2Gi; room to try 7b models.
 persistentVolume:
