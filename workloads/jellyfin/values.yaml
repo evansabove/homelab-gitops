@@ -28,6 +28,9 @@ resources:
     cpu: 500m
     memory: 1Gi
   limits:
+    # One iGPU. Extended resources must have limit == request; Kubernetes
+    # mirrors this into requests automatically.
+    gpu.intel.com/i915: 1
     # Raised from 2 cores now that Ollama — which reserved 5 of benson's 6 —
     # is gone. Still leaves a core for k3s, Immich and the Tailscale proxies.
     # A limit is a ceiling, not a reservation: idle Jellyfin still uses ~0.
@@ -36,29 +39,22 @@ resources:
     memory: 4Gi
 
 # Hardware transcoding via Intel Quick Sync (UHD 630 on benson's i5-8500T).
-# Verified on the node 2026-08-17: /dev/dri holds card0 (GID 44) and
-# renderD128 (GID 992) — VAAPI uses the render node.
 #
-# supplementalGroups is the part that is easy to miss: mounting the device is
-# not enough, the container process must be in the group that owns it or every
-# open fails with a permission error that looks like a missing device.
+# The iGPU is requested as an extended resource rather than mounted by hand.
+# A hostPath mount of /dev/dri makes the device visible but not usable:
+# Kubernetes gates device use through the device cgroup, so opening an
+# un-allocated node fails with EPERM even as root. The Intel GPU device plugin
+# (apps/intel-gpu-plugin.yaml) advertises gpu.intel.com/i915 and the kubelet
+# grants real access on allocation — no privileged container needed.
 #
-# No nodeSelector: this hostPath ties the pod to a node that actually has the
-# iGPU. Moot on a single-node cluster, but worth knowing if a node is ever added.
+# supplementalGroups is belt-and-braces: the container currently runs as root,
+# which can open the device once allocated, but these keep it working if the
+# image ever drops to a non-root user. 992 owns renderD128, 44 owns card0 on
+# this host.
 podSecurityContext:
   supplementalGroups:
-    - 992  # render — owns /dev/dri/renderD128
-    - 44   # video  — owns /dev/dri/card0
-
-volumes:
-  - name: dri
-    hostPath:
-      path: /dev/dri
-      type: Directory
-
-volumeMounts:
-  - name: dri
-    mountPath: /dev/dri
+    - 992  # render
+    - 44   # video
 
 ingress:
   enabled: true
