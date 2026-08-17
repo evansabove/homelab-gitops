@@ -35,6 +35,31 @@ resources:
     cpu: "5"
     memory: 4Gi
 
+# Hardware transcoding via Intel Quick Sync (UHD 630 on benson's i5-8500T).
+# Verified on the node 2026-08-17: /dev/dri holds card0 (GID 44) and
+# renderD128 (GID 992) — VAAPI uses the render node.
+#
+# supplementalGroups is the part that is easy to miss: mounting the device is
+# not enough, the container process must be in the group that owns it or every
+# open fails with a permission error that looks like a missing device.
+#
+# No nodeSelector: this hostPath ties the pod to a node that actually has the
+# iGPU. Moot on a single-node cluster, but worth knowing if a node is ever added.
+podSecurityContext:
+  supplementalGroups:
+    - 992  # render — owns /dev/dri/renderD128
+    - 44   # video  — owns /dev/dri/card0
+
+volumes:
+  - name: dri
+    hostPath:
+      path: /dev/dri
+      type: Directory
+
+volumeMounts:
+  - name: dri
+    mountPath: /dev/dri
+
 ingress:
   enabled: true
   className: traefik
