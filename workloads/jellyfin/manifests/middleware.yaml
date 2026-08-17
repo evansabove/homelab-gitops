@@ -1,0 +1,16 @@
+# Traefik buffering middleware for the Jellyfin ingress. maxRequestBodyBytes: 0
+# lifts Traefik's request body limit, so large uploads/range requests aren't
+# capped. Created by hand originally; codified here unchanged.
+#
+# Deliberately in the `default` namespace: the ingress annotation in
+# workloads/jellyfin/values.yaml references it as
+# default-jellyfin-buffering@kubernetescrd. Moving it to the jellyfin namespace
+# means updating that annotation to jellyfin-jellyfin-buffering@kubernetescrd.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: jellyfin-buffering
+  namespace: default
+spec:
+  buffering:
+    maxRequestBodyBytes: 0

@@ -1,0 +1,22 @@
+# TLS cert for benson.andyevans.dev, consumed by the chart's ingress via the
+# benson-tls secret. A standalone Certificate rather than a cert-manager
+# ingress-shim annotation, matching how it was created by hand.
+#
+# The live cert was issued by a `letsencrypt-dns` ClusterIssuer that only ever
+# existed in the cluster, never in git. It is byte-identical to the `letsencrypt`
+# issuer in infrastructure/cert-issuers/cluster-issuer.yaml (same ACME server,
+# same Cloudflare DNS-01 solver, same account key secret), so this points at
+# that one instead of enshrining a duplicate. cert-manager will re-issue on
+# first sync; the secret is only swapped once the new cert is in hand.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: benson-cert
+  namespace: jellyfin
+spec:
+  secretName: benson-tls
+  dnsNames:
+    - benson.andyevans.dev
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt

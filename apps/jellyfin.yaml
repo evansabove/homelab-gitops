@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jellyfin
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # The Jellyfin Helm chart, configured from values in this repo
+    - repoURL: https://jellyfin.github.io/jellyfin-helm
+      chart: jellyfin
+      targetRevision: 3.2.0
+      helm:
+        valueFiles:
+          - $values/workloads/jellyfin/values.yaml
+    - repoURL: https://github.com/evansabove/homelab-gitops.git
+      targetRevision: main
+      ref: values
+    # Supporting resources the chart doesn't provide: TLS cert + Traefik middleware
+    - repoURL: https://github.com/evansabove/homelab-gitops.git
+      targetRevision: main
+      path: workloads/jellyfin/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jellyfin
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

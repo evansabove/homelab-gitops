@@ -1,0 +1,50 @@
+# Values for the jellyfin Helm chart (chart pinned in apps/jellyfin.yaml).
+#
+# Adopted verbatim from the hand-installed Helm release (jellyfin-3.2.0), minus
+# a stray Traefik Middleware manifest that had been pasted into the values file
+# as top-level apiVersion/kind/metadata/spec keys — the chart ignored those, so
+# the Middleware was really created out-of-band. It now lives in
+# manifests/middleware.yaml.
+
+replicaCount: 1
+
+image:
+  pullPolicy: IfNotPresent
+
+persistence:
+  config:
+    enabled: true
+    size: 5Gi
+    # Empty = cluster default (local-path). Matches the live PVCs, which the
+    # chart renders without a storageClassName.
+    storageClass: ""
+  media:
+    enabled: true
+    size: 100Gi
+    storageClass: ""
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    # Middleware defined in manifests/middleware.yaml (default namespace)
+    traefik.ingress.kubernetes.io/router.middlewares: default-jellyfin-buffering@kubernetescrd
+  hosts:
+    - host: benson.andyevans.dev
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    # Issued by the Certificate in manifests/certificate.yaml
+    - secretName: benson-tls
+      hosts:
+        - benson.andyevans.dev
