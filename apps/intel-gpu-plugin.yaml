@@ -1,0 +1,25 @@
+# Intel GPU device plugin: exposes the iGPU to pods as gpu.intel.com/i915.
+# Required for Jellyfin hardware transcoding — see the DaemonSet's own header
+# for why a hostPath mount alone does not work.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: intel-gpu-plugin
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/evansabove/homelab-gitops.git
+    targetRevision: main
+    path: infrastructure/intel-gpu-plugin
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: intel-gpu-plugin
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
