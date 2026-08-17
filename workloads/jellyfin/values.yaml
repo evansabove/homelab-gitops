@@ -28,7 +28,11 @@ resources:
     cpu: 500m
     memory: 1Gi
   limits:
-    cpu: 2000m
+    # Raised from 2 cores now that Ollama — which reserved 5 of benson's 6 —
+    # is gone. Still leaves a core for k3s, Immich and the Tailscale proxies.
+    # A limit is a ceiling, not a reservation: idle Jellyfin still uses ~0.
+    # Software transcoding for remote playback is what needs the headroom.
+    cpu: "5"
     memory: 4Gi
 
 ingress:
