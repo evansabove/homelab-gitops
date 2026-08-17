@@ -1,0 +1,30 @@
+# Publishes Jellyfin onto the tailnet as jellyfin.tail59c5b9.ts.net, for
+# watching while travelling. Handled by the Tailscale operator
+# (apps/tailscale-operator.yaml), which creates a proxy pod in the `tailscale`
+# namespace and joins it to the tailnet as a device named by tls.hosts[0].
+#
+# This sits alongside the chart's Traefik ingress (benson.andyevans.dev), which
+# still serves the LAN. Traefik ignores this one — different ingressClassName.
+#
+# Reachable only from devices signed into the tailnet. Nothing is exposed to
+# the public internet: that would need a `tailscale.com/funnel: "true"`
+# annotation, which is deliberately absent.
+#
+# HTTPS is terminated by the proxy using a Tailscale-issued cert, so this needs
+# MagicDNS and HTTPS Certificates enabled on the tailnet.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyfin-tailscale
+  namespace: jellyfin
+spec:
+  ingressClassName: tailscale
+  defaultBackend:
+    service:
+      name: jellyfin
+      port:
+        number: 8096
+  tls:
+    # Device name on the tailnet — becomes jellyfin.tail59c5b9.ts.net
+    - hosts:
+        - jellyfin

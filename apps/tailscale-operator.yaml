@@ -1,0 +1,35 @@
+# Tailscale Kubernetes operator: lets Services/Ingresses in this cluster be
+# published onto the tailnet (tail59c5b9.ts.net) with no ports opened to the
+# public internet.
+#
+# The chart can take OAuth credentials as Helm values, but that would put them
+# in git. Left empty deliberately: the chart then renders no Secret, and the
+# operator reads the `operator-oauth` Secret that the SealedSecret in
+# infrastructure/tailscale-operator/ provides (keys: client_id, client_secret).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tailscale-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://pkgs.tailscale.com/helmcharts
+      chart: tailscale-operator
+      targetRevision: 1.102.2
+    # OAuth credentials as a SealedSecret (not committed until you generate it —
+    # see the README in that directory)
+    - repoURL: https://github.com/evansabove/homelab-gitops.git
+      targetRevision: main
+      path: infrastructure/tailscale-operator
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tailscale
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
