@@ -31,11 +31,11 @@ resources:
     # One iGPU. Extended resources must have limit == request; Kubernetes
     # mirrors this into requests automatically.
     gpu.intel.com/i915: 1
-    # Raised from 2 cores now that Ollama — which reserved 5 of benson's 6 —
-    # is gone. Still leaves a core for k3s, Immich and the Tailscale proxies.
-    # A limit is a ceiling, not a reservation: idle Jellyfin still uses ~0.
-    # Software transcoding for remote playback is what needs the headroom.
-    cpu: "5"
+    # Back down from 5 cores now that Ollama is back: LLM inference takes
+    # priority on benson's 6. Quick Sync does the heavy lifting for
+    # transcodes, so this only bites on software fallback (e.g. subtitle
+    # burn-in), which will be slower.
+    cpu: "2"
     memory: 4Gi
 
 # Hardware transcoding via Intel Quick Sync (UHD 630 on benson's i5-8500T).

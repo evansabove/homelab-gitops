@@ -1,0 +1,67 @@
+# Values for the ollama Helm chart (chart pinned in apps/ollama.yaml).
+# CPU-only inference on benson (i5-8500T, 6 cores, 16GB). The UHD 630 iGPU is
+# no use for LLMs, and it's allocated to Jellyfin anyway.
+
+ollama:
+  models:
+    # Pulled at container startup if not already on the PVC.
+    pull:
+      # Primary: JetBrains Mellum 2.1, a 12B mixture-of-experts coding model
+      # with only 2.5B parameters active per token. On CPU, generation speed is
+      # bound by how many weights are read per token, so this runs far faster
+      # than a dense model of similar quality. Official GGUF, Q4_K_M (8.1GB) is
+      # JetBrains' recommended quant; MXFP4_MOE (7.0GB) is the fallback if
+      # memory gets tight.
+      - hf.co/JetBrains/Mellum2.1-12B-A2.5B-Thinking-GGUF:Q4_K_M
+      # Comparison: dense 9B general model (6.6GB). Slower here, but a useful
+      # yardstick for Mellum on real code.
+      - qwen3.5:9b
+    # Short alias carrying JetBrains' recommended sampling parameters, so
+    # Open WebUI doesn't need configuring per model. Created after the pulls.
+    create:
+      - name: mellum
+        template: |
+          FROM hf.co/JetBrains/Mellum2.1-12B-A2.5B-Thinking-GGUF:Q4_K_M
+          PARAMETER temperature 0.6
+          PARAMETER top_p 0.95
+          PARAMETER top_k 20
+
+extraEnv:
+  # Only one model fits in RAM at a time; switching models unloads the other.
+  - name: OLLAMA_MAX_LOADED_MODELS
+    value: "1"
+  # Each parallel slot gets its own KV cache — one user, one slot.
+  - name: OLLAMA_NUM_PARALLEL
+    value: "1"
+  # Prompt processing on 6 CPU cores is slow (pasting a few thousand tokens of
+  # code takes tens of seconds), so a bigger window wouldn't be usable anyway.
+  - name: OLLAMA_CONTEXT_LENGTH
+    value: "16384"
+  # Halves KV cache memory; q8_0 requires flash attention.
+  - name: OLLAMA_FLASH_ATTENTION
+    value: "1"
+  - name: OLLAMA_KV_CACHE_TYPE
+    value: "q8_0"
+  # Reloading 8GB of weights from disk takes a while; keep the model resident
+  # between bursts of questions.
+  - name: OLLAMA_KEEP_ALIVE
+    value: "30m"
+
+# Model storage (local-path). Both models together are ~15GB.
+persistentVolume:
+  enabled: true
+  size: 50Gi
+
+resources:
+  requests:
+    # A large request rather than a limit: under contention, CPU time is shared
+    # in proportion to requests, so this gets ~8x Jellyfin's share. A CPU limit
+    # would be actively harmful — llama.cpp's threads synchronise every token,
+    # and CFS throttling one of them stalls them all.
+    cpu: "4"
+    # Requesting what the model actually uses protects it from eviction and
+    # makes the kernel OOM killer prefer other pods under memory pressure.
+    memory: 9Gi
+  limits:
+    # Q4_K_M weights (7.5GiB) + 16K q8_0 KV cache + runtime overhead.
+    memory: 10Gi
