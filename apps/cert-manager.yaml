@@ -13,6 +13,16 @@ spec:
       valuesObject:
         crds:
           enabled: true
+        # Check DNS-01 challenge records against public DNS. Inside the cluster,
+        # andyevans.dev resolves via the on-prem Technitium zone (split horizon:
+        # hosts like chat/benson exist only there), which never sees the
+        # _acme-challenge TXT records cert-manager creates in Cloudflare. Without
+        # this, the pre-validation self-check asks Technitium, gets NXDOMAIN, and
+        # waits forever with "DNS record ... not yet propagated".
+        # Only the self-check uses these resolvers; nothing else is affected.
+        extraArgs:
+          - --dns01-recursive-nameservers-only
+          - --dns01-recursive-nameservers=1.1.1.1:53,8.8.8.8:53
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
