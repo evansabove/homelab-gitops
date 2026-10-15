@@ -42,10 +42,11 @@ extraEnv:
     value: "1"
   - name: OLLAMA_KV_CACHE_TYPE
     value: "q8_0"
-  # Reloading 8GB of weights from disk takes a while; keep the model resident
-  # between bursts of questions.
+  # Reloading 8GB of weights from disk takes ~25s, which landed on the first
+  # question after every idle spell. The memory is reserved by the request
+  # below whether or not the model is loaded, so never unload it.
   - name: OLLAMA_KEEP_ALIVE
-    value: "30m"
+    value: "-1"
 
 # Model storage (local-path). Both models together are ~15GB.
 persistentVolume:
