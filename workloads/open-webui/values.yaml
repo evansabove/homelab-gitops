@@ -12,6 +12,17 @@ extraEnvVars:
   # only; afterwards it's stored in Open WebUI's DB and set in the admin UI.
   - name: DEFAULT_MODELS
     value: mellum
+  # Background tasks (chat titles, tags, follow-up suggestions) run on the chat
+  # model and queue behind it in Ollama's single slot. With a thinking model on
+  # CPU each costs as much as a real reply, so the next question waits minutes.
+  # Same caveat as above: first start only, after that it's Admin Panel →
+  # Settings → Interface.
+  - name: ENABLE_TITLE_GENERATION
+    value: "False"
+  - name: ENABLE_TAGS_GENERATION
+    value: "False"
+  - name: ENABLE_FOLLOW_UP_GENERATION
+    value: "False"
 
 pipelines:
   enabled: false
