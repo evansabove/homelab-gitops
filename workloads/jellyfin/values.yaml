@@ -8,6 +8,12 @@
 
 replicaCount: 1
 
+# Recreate, not RollingUpdate: the pod holds benson's only iGPU
+# (gpu.intel.com/i915: 1 below), so a surge pod can never schedule and a
+# rolling update hangs forever with the new pod Pending.
+deploymentStrategy:
+  type: Recreate
+
 image:
   pullPolicy: IfNotPresent
 
@@ -22,6 +28,10 @@ persistence:
     enabled: true
     size: 100Gi
     storageClass: ""
+    # Chart 3.7 mounts media read-only by default; 3.2 mounted it read-write.
+    # Kept read-write so nothing that saves into library folders (metadata,
+    # artwork, subtitles) breaks on the upgrade.
+    readOnly: false
 
 resources:
   requests:
