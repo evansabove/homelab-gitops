@@ -1,5 +1,9 @@
 # Values for the open-webui Helm chart (chart pinned in apps/open-webui.yaml).
 
+# Stopped (scaled to zero) — not in use. Data PVCs are kept; set back to 1
+# to start again.
+replicaCount: 0
+
 # Ollama runs as its own app (apps/ollama.yaml) — don't bundle the subchart
 ollama:
   enabled: false

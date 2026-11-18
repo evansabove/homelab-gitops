@@ -2,6 +2,10 @@
 # CPU-only inference on benson (i5-8500T, 6 cores, 16GB). The UHD 630 iGPU is
 # no use for LLMs, and it's allocated to Jellyfin anyway.
 
+# Stopped (scaled to zero) — not in use. Data PVCs are kept; set back to 1
+# to start again.
+replicaCount: 0
+
 ollama:
   models:
     # Pulled at container startup if not already on the PVC.
